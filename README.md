@@ -1,3 +1,31 @@
+This project now includes [Stack Auth](https://stack-auth.com) for authentication using the official Next.js SDK (`@stackframe/stack`).
+
+## Stack Auth setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Create a project in the [Stack Auth dashboard](https://app.stack-auth.com/projects) and copy the API keys into `.env.local`:
+
+   ```bash
+   NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
+   NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
+   STACK_SECRET_SERVER_KEY=<your-secret-server-key>
+   ```
+
+3. Start the dev server and explore the hosted auth flows:
+
+   - `http://localhost:3000/` &mdash; demo landing page that embeds the `<SignIn />` component and shows a `UserButton` when signed in.
+   - `http://localhost:3000/handler/sign-in` &mdash; full Stack Auth sign-in page.
+   - `http://localhost:3000/handler/account-settings` &mdash; user profile management.
+
+Note: The integration follows the manual setup steps documented in the [Stack Auth Next.js setup guide](https://stack-auth.com/docs/next/getting-started/setup) and uses the official UI components such as [`<SignIn />`](https://stack-auth.com/docs/next/components/sign-in) and [`<UserButton />`](https://stack-auth.com/docs/next/components/user-button).
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

@@ -1,4 +1,4 @@
-## Description
+# Description
 
 This is an app powered by a system of AI agents that work together to adjust user's resume to a specific job posting. The system consists of three agents:
 
