@@ -1,0 +1,64 @@
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Next.js: Debug Server",
+                "type": "node",
+                "request": "launch",
+                "runtimeExecutable": "npm",
+                "runtimeArgs": [
+                    "run",
+                    "dev"
+                ],
+                "console": "integratedTerminal",
+                "internalConsoleOptions": "neverOpen",
+                "skipFiles": [
+                    "<node_internals>/**"
+                ]
+            },
+            {
+                "name": "Next.js: Debug Client",
+                "type": "chrome",
+                "request": "launch",
+                "url": "http://localhost:3000", // Adjust port if necessary
+                "webRoot": "${workspaceFolder}",
+                "sourceMaps": true,
+                "port": 9222,
+                "runtimeArgs": [
+                    "--user-data-dir=${workspaceFolder}/.chrome-profile", // Example argument: specifies a custom user data directory
+                    "--allow-insecure-localhost",
+                    "--enable-logging",
+                    "--v=1"
+                ],
+                // "preLaunchTask": "Next.js: Debug Server", // Optional: ensures dev server is running
+                // "postDebugTask": "stop server"
+            },
+            {
+                "name": "Next.js: Full Stack Debug",
+                "type": "node",
+                "request": "launch",
+                "runtimeExecutable": "npm",
+                "runtimeArgs": [
+                    "run",
+                    "dev"
+                ],
+                "console": "integratedTerminal",
+                "internalConsoleOptions": "neverOpen",
+                "skipFiles": [
+                    "<node_internals>/**"
+                ],
+                // "preLaunchTask": "npm: dev", // Ensure dev server is running
+            },
+        ],
+        "compounds": [
+            {
+                "name": "Next.js Server/Client",
+                "configurations": [
+                    "Next.js: Debug Server",
+                    "Next.js: Debug Client"
+                ],
+                // "preLaunchTask": "${defaultBuildTask}",
+                "stopAll": true
+            }
+        ]
+    }
