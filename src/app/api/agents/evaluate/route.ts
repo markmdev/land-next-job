@@ -3,16 +3,24 @@ import { z, ZodError } from 'zod';
 
 import { evaluateResume } from '@/lib/agents';
 
+const reasoningEffortSchema = z.enum(['minimal', 'low', 'medium', 'high']);
+
 const requestSchema = z.object({
   jobPosting: z.string().trim().min(1, 'jobPosting is required'),
   resume: z.string().trim().min(1, 'resume is required'),
   model: z.string().trim().min(1).optional(),
+  reasoningEffort: reasoningEffortSchema.optional(),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = requestSchema.parse(await req.json());
-    const result = await evaluateResume(body.jobPosting, body.resume, body.model);
+    const result = await evaluateResume(
+      body.jobPosting,
+      body.resume,
+      body.model,
+      body.reasoningEffort,
+    );
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof ZodError) {

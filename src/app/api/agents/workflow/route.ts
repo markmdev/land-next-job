@@ -3,11 +3,21 @@ import { z, ZodError } from 'zod';
 
 import { runResumeTailoringWorkflow } from '@/lib/agents';
 
+const reasoningEffortSchema = z.enum(['minimal', 'low', 'medium', 'high']);
+
+const modelOverrideSchema = z.union([
+  z.string().trim().min(1),
+  z.object({
+    name: z.string().trim().min(1),
+    reasoningEffort: reasoningEffortSchema.optional(),
+  }),
+]);
+
 const modelsSchema = z
   .object({
-    evaluation: z.string().trim().min(1).optional(),
-    advisor: z.string().trim().min(1).optional(),
-    writer: z.string().trim().min(1).optional(),
+    evaluation: modelOverrideSchema.optional(),
+    advisor: modelOverrideSchema.optional(),
+    writer: modelOverrideSchema.optional(),
   })
   .partial();
 

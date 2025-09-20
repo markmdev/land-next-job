@@ -3,11 +3,14 @@ import { z, ZodError } from 'zod';
 
 import { advisorSchema, rewriteResume, writerSchema } from '@/lib/agents';
 
+const reasoningEffortSchema = z.enum(['minimal', 'low', 'medium', 'high']);
+
 const requestSchema = z.object({
   jobPosting: z.string().trim().min(1, 'jobPosting is required'),
   resume: z.string().trim().min(1, 'resume is required'),
   recommendations: advisorSchema,
   model: z.string().trim().min(1).optional(),
+  reasoningEffort: reasoningEffortSchema.optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -18,6 +21,7 @@ export async function POST(req: NextRequest) {
       body.resume,
       body.recommendations,
       body.model,
+      body.reasoningEffort,
     );
 
     const parsed = writerSchema.parse(result);

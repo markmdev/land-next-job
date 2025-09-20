@@ -2,7 +2,7 @@
 
 This is an app powered by a system of AI agents that work together to adjust user's resume to a specific job posting. The system consists of three agents:
 
-1. Resume-job-match-evaluation: This agent evaluates how well the user's resume matches the job posting. It returns a score and a list of missing qualifications.
+1. Resume-job-match-evaluation: This agent evaluates how well the user's resume matches the job posting. It returns a score and a list of missing qualifications, keywords etc. This is virtually a company's ATS system that checks for specific keywords and phrases in the resume that were used in the job posting.
 2. Resume-tailoring-advisor: This agent provides advice on how to tailor the user's resume to the job posting. It returns a list of recommendations.
 3. Professional-resume-writer: This agent rewrites the user's resume based on the advice from the Resume-tailoring-advisor.
 

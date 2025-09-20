@@ -1,6 +1,5 @@
-"use server";
-
 import { Agent, run } from "@openai/agents";
+import type { ModelSettings } from "@openai/agents";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
@@ -15,15 +14,44 @@ const DEFAULT_TARGET_SCORE = 85;
 const DEFAULT_MAX_ITERATIONS = 3;
 
 const DEFAULT_MODELS = {
-  evaluation: "gpt-4o-mini",
-  advisor: "gpt-4o-mini",
-  writer: "gpt-4o",
+  evaluation: "gpt-5",
+  advisor: "gpt-5",
+  writer: "gpt-5",
 } as const;
+
+type ReasoningEffort = "minimal" | "low" | "medium" | "high";
 
 export const evaluationSchema = z.object({
   score: z.number().min(0).max(100),
-  missing_qualifications: z.array(z.string()),
-  summary: z.string(),
+  matchTier: z.enum(["outstanding", "strong", "moderate", "weak", "poor"]),
+  overallSummary: z.string(),
+  highPriorityGaps: z.array(z.string()),
+  atsKeywordAnalysis: z.object({
+    criticalMissing: z.array(z.string()),
+    shouldEmphasize: z.array(z.string()),
+    resumeOnlyTermsToDeprioritize: z.array(z.string()),
+  }),
+  sectionAdjustments: z.object({
+    summary: z.object({
+      add: z.array(z.string()),
+      remove: z.array(z.string()),
+      notes: z.array(z.string()),
+    }),
+    skills: z.object({
+      add: z.array(z.string()),
+      remove: z.array(z.string()),
+      reorder: z.array(z.string()),
+    }),
+    experience: z.array(
+      z.object({
+        identifier: z.string(),
+        addOrRewrite: z.array(z.string()),
+        deEmphasize: z.array(z.string()),
+        keywordFocus: z.array(z.string()),
+      })
+    ),
+  }),
+  formatWarnings: z.array(z.string()),
 });
 
 export const advisorSchema = z.object({
@@ -93,9 +121,9 @@ export const writerSchema = z.object({
   }),
 });
 
-type ResumeEvaluationResult = z.infer<typeof evaluationSchema>;
-type TailoringAdvisorOutput = z.infer<typeof advisorSchema>;
-type ProfessionalResumeWriterOutput = z.infer<typeof writerSchema>;
+export type ResumeEvaluationResult = z.infer<typeof evaluationSchema>;
+export type TailoringAdvisorOutput = z.infer<typeof advisorSchema>;
+export type ProfessionalResumeWriterOutput = z.infer<typeof writerSchema>;
 
 type AgentModelConfig = {
   evaluation: string;
@@ -103,10 +131,22 @@ type AgentModelConfig = {
   writer: string;
 };
 
+type AgentModelResolved = {
+  name: string;
+  reasoningEffort?: ReasoningEffort;
+};
+
+type AgentModelOptionInput =
+  | string
+  | {
+      name: string;
+      reasoningEffort?: ReasoningEffort;
+    };
+
 export interface ResumeTailoringWorkflowOptions {
   targetScore?: number;
   maxIterations?: number;
-  models?: Partial<AgentModelConfig>;
+  models?: Partial<Record<keyof AgentModelConfig, AgentModelOptionInput>>;
 }
 
 export interface TailoringIterationRecord {
@@ -151,19 +191,39 @@ function applyTemplate(template: string, values: Record<string, string>): string
   return template.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_, key: string) => values[key] ?? "");
 }
 
+function buildModelSettings(
+  model: string,
+  reasoningEffort?: ReasoningEffort
+): ModelSettings | undefined {
+  const effort = reasoningEffort ?? (model.startsWith("gpt-5") ? "minimal" : undefined);
+
+  if (!effort) {
+    return undefined;
+  }
+
+  return {
+    providerData: {
+      reasoning: { effort },
+    },
+  } satisfies ModelSettings;
+}
+
 async function runAgentWithSchema<TSchema extends z.AnyZodObject>(params: {
   promptFile: (typeof PROMPT_FILENAMES)[keyof typeof PROMPT_FILENAMES];
   replacements: Record<string, string>;
   agentName: string;
   model: string;
   schema: TSchema;
+  reasoningEffort?: ReasoningEffort;
 }): Promise<z.infer<TSchema>> {
   const promptTemplate = await loadPrompt(params.promptFile);
   const instructions = applyTemplate(promptTemplate, params.replacements);
+  const modelSettings = buildModelSettings(params.model, params.reasoningEffort);
   const agent = new Agent({
     name: params.agentName,
     instructions,
     model: params.model,
+    ...(modelSettings ? { modelSettings } : {}),
     outputType: params.schema,
   });
 
@@ -175,7 +235,8 @@ async function runAgentWithSchema<TSchema extends z.AnyZodObject>(params: {
 export async function evaluateResume(
   jobPosting: string,
   resume: string,
-  model: string = DEFAULT_MODELS.evaluation
+  model: string = DEFAULT_MODELS.evaluation,
+  reasoningEffort?: ReasoningEffort
 ): Promise<ResumeEvaluationResult> {
   return runAgentWithSchema({
     promptFile: PROMPT_FILENAMES.evaluation,
@@ -185,6 +246,7 @@ export async function evaluateResume(
     },
     agentName: "Resume-job-match-evaluation",
     model,
+    reasoningEffort,
     schema: evaluationSchema,
   });
 }
@@ -192,7 +254,8 @@ export async function evaluateResume(
 export async function getTailoringAdvice(
   jobPosting: string,
   resume: string,
-  model: string = DEFAULT_MODELS.advisor
+  model: string = DEFAULT_MODELS.advisor,
+  reasoningEffort?: ReasoningEffort
 ): Promise<TailoringAdvisorOutput> {
   return runAgentWithSchema({
     promptFile: PROMPT_FILENAMES.advisor,
@@ -202,6 +265,7 @@ export async function getTailoringAdvice(
     },
     agentName: "Resume-tailoring-advisor",
     model,
+    reasoningEffort,
     schema: advisorSchema,
   });
 }
@@ -210,7 +274,8 @@ export async function rewriteResume(
   jobPosting: string,
   resume: string,
   recommendations: TailoringAdvisorOutput,
-  model: string = DEFAULT_MODELS.writer
+  model: string = DEFAULT_MODELS.writer,
+  reasoningEffort?: ReasoningEffort
 ): Promise<ProfessionalResumeWriterOutput> {
   return runAgentWithSchema({
     promptFile: PROMPT_FILENAMES.writer,
@@ -221,15 +286,38 @@ export async function rewriteResume(
     },
     agentName: "Professional-resume-writer",
     model,
+    reasoningEffort,
     schema: writerSchema,
   });
 }
 
-function resolveModels(overrides?: Partial<AgentModelConfig>): AgentModelConfig {
+type ResolvedAgentModelConfig = Record<keyof AgentModelConfig, AgentModelResolved>;
+
+function resolveModelEntry(
+  key: keyof AgentModelConfig,
+  override?: AgentModelOptionInput
+): AgentModelResolved {
+  if (!override) {
+    return { name: DEFAULT_MODELS[key] };
+  }
+
+  if (typeof override === "string") {
+    return { name: override };
+  }
+
   return {
-    evaluation: overrides?.evaluation ?? DEFAULT_MODELS.evaluation,
-    advisor: overrides?.advisor ?? DEFAULT_MODELS.advisor,
-    writer: overrides?.writer ?? DEFAULT_MODELS.writer,
+    name: override.name,
+    reasoningEffort: override.reasoningEffort,
+  };
+}
+
+function resolveModels(
+  overrides?: Partial<Record<keyof AgentModelConfig, AgentModelOptionInput>>
+): ResolvedAgentModelConfig {
+  return {
+    evaluation: resolveModelEntry("evaluation", overrides?.evaluation),
+    advisor: resolveModelEntry("advisor", overrides?.advisor),
+    writer: resolveModelEntry("writer", overrides?.writer),
   };
 }
 
@@ -258,7 +346,12 @@ export async function runResumeTailoringWorkflow(
   const iterations: TailoringIterationRecord[] = [];
 
   let currentResume = startingResume;
-  let currentEvaluation = await evaluateResume(jobPosting, currentResume, models.evaluation);
+  let currentEvaluation = await evaluateResume(
+    jobPosting,
+    currentResume,
+    models.evaluation.name,
+    models.evaluation.reasoningEffort
+  );
 
   iterations.push({
     iteration: 0,
@@ -278,15 +371,26 @@ export async function runResumeTailoringWorkflow(
   }
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
-    const recommendations = await getTailoringAdvice(jobPosting, currentResume, models.advisor);
+    const recommendations = await getTailoringAdvice(
+      jobPosting,
+      currentResume,
+      models.advisor.name,
+      models.advisor.reasoningEffort
+    );
     const writerOutput = await rewriteResume(
       jobPosting,
       currentResume,
       recommendations,
-      models.writer
+      models.writer.name,
+      models.writer.reasoningEffort
     );
     const rewrittenResume = normalizeResume(writerOutput.rewritten_resume.trim());
-    const reevaluated = await evaluateResume(jobPosting, rewrittenResume, models.evaluation);
+    const reevaluated = await evaluateResume(
+      jobPosting,
+      rewrittenResume,
+      models.evaluation.name,
+      models.evaluation.reasoningEffort
+    );
 
     iterations.push({
       iteration,
@@ -315,5 +419,3 @@ export async function runResumeTailoringWorkflow(
     iterations,
   };
 }
-
-export type { ResumeEvaluationResult, TailoringAdvisorOutput, ProfessionalResumeWriterOutput };
