@@ -12,6 +12,7 @@ import { WORKFLOW_STEP_ORDER } from "@/lib/workflow-progress";
 
 import { DashboardSidebar } from "./_components/sidebar";
 import { ProgressDrawer, type WorkflowStep } from "./_components/progress-drawer";
+import { InsufficientCreditsDialog } from "./_components/insufficient-credits-dialog";
 
 const RUN_STATUS_LABEL: Record<WorkflowProgressSnapshot["status"], string> = {
   queued: "Queued",
@@ -56,6 +57,7 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAdjustedResume, setShowAdjustedResume] = useState(false);
+  const [showInsufficientCreditsDialog, setShowInsufficientCreditsDialog] = useState(false);
 
   const isRunActive = progressSnapshot
     ? ["queued", "running"].includes(progressSnapshot.status)
@@ -133,6 +135,12 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
       });
 
       if (!response.ok) {
+        if (response.status === 402) {
+          setShowInsufficientCreditsDialog(true);
+          setIsSubmitting(false);
+          return;
+        }
+
         const data = await response.json().catch(() => ({}));
         throw new Error((data as { error?: string }).error ?? "Failed to start run");
       }
@@ -332,6 +340,10 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
           </section>
         </div>
       </main>
+      <InsufficientCreditsDialog
+        open={showInsufficientCreditsDialog}
+        onOpenChange={setShowInsufficientCreditsDialog}
+      />
     </div>
   );
 }

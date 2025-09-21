@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const body = requestSchema.parse(await req.json());
 
     const user = await stackServerApp.getUser();
-    const item = await user?.getItem('offer-2');
+    const item = await user?.getItem('credits');
     const didItWork = await item?.tryDecreaseQuantity(1);
     if (didItWork === false){
       return NextResponse.json(
