@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Master Resume", href: "/dashboard/master-resume" },
+  // { label: "Master Resume", href: "/dashboard/master-resume" },
   { label: "Job Hunt", href: "/dashboard" },
 ];
 
@@ -21,7 +21,10 @@ export function DashboardSidebar() {
 
   const displayName = user?.displayName ?? user?.primaryEmail ?? "Guest";
   const email = user?.primaryEmail ?? "guest@example.com";
-  const avatarUrl = user && "photoUrl" in user ? (user as { photoUrl?: string | null }).photoUrl ?? undefined : undefined;
+  const avatarUrl =
+    user && "photoUrl" in user
+      ? (user as { photoUrl?: string | null }).photoUrl ?? undefined
+      : undefined;
   const initials = displayName
     .split(" ")
     .map((part) => part[0])
@@ -75,13 +78,11 @@ export function DashboardSidebar() {
                   "flex items-center justify-between rounded-xl border border-transparent px-4 py-3 font-semibold transition",
                   isActive
                     ? "border-cyan-400/40 bg-cyan-400/10 text-white shadow-[0_0_20px_-12px_rgba(34,211,238,0.8)]"
-                    : "border-white/5 bg-white/5 text-slate-300 hover:border-white/15 hover:bg-white/10 hover:text-white",
+                    : "border-white/5 bg-white/5 text-slate-300 hover:border-white/15 hover:bg-white/10 hover:text-white"
                 )}
               >
                 {item.label}
-                {isActive && (
-                  <Badge className="bg-cyan-400/80 text-slate-950">Active</Badge>
-                )}
+                {isActive && <Badge className="bg-cyan-400/80 text-slate-950">Active</Badge>}
               </span>
             </Link>
           );
@@ -91,7 +92,9 @@ export function DashboardSidebar() {
       <div className="mt-auto pt-10">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-900/30 p-5 text-xs text-slate-300">
           <p className="font-semibold text-white">Need more runs?</p>
-          <p className="mt-1 text-slate-400">Upgrade to a credit bundle and unlock unlimited job experiments.</p>
+          <p className="mt-1 text-slate-400">
+            Upgrade to a credit bundle and unlock unlimited job experiments.
+          </p>
           <Button
             size="sm"
             className="mt-4 w-full rounded-full bg-cyan-400/80 text-slate-950 hover:bg-cyan-300"

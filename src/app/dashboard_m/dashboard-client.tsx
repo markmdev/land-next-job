@@ -264,7 +264,7 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
                 <Textarea
                   value={resumeText}
                   onChange={(event) => setResumeText(event.target.value)}
-                  className="flex-1 min-h-0 resize-none"
+                  className="flex-1 min-h-[500px] resize-none"
                 />
                 <div className="flex items-center justify-between text-[11px] text-slate-500">
                   <span>{runId ? `Run ${runId.slice(0, 8)}…` : "Ready for tailoring"}</span>
@@ -316,7 +316,7 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
                       setJobPostingText(event.target.value);
                     }
                   }}
-                  className="flex-1 min-h-0 resize-none"
+                  className="flex-1 min-h-[500px] resize-none"
                   readOnly={showAdjustedResume && !!latestWriterOutput}
                 />
                 <div className="flex items-center justify-between text-[11px] text-slate-500">
@@ -342,7 +342,17 @@ interface WriterInsightsProps {
 }
 
 function WriterInsights({ implementationNotes, unaddressedItems }: WriterInsightsProps) {
+  const [expanded, setExpanded] = useState(false);
   const hasContent = implementationNotes.length > 0 || unaddressedItems.length > 0;
+  const needsExpansion =
+    implementationNotes.length > 2 || unaddressedItems.length > 2;
+
+  const displayedImplementation = expanded
+    ? implementationNotes
+    : implementationNotes.slice(0, 2);
+  const displayedUnaddressed = expanded
+    ? unaddressedItems
+    : unaddressedItems.slice(0, 2);
 
   return (
     <Card className="shrink-0 border-white/10 bg-white/5">
@@ -357,10 +367,10 @@ function WriterInsights({ implementationNotes, unaddressedItems }: WriterInsight
       <CardContent className="px-4 pb-4">
         {hasContent ? (
           <div className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2">
-            <WriterInsightsList title="Implementation notes" items={implementationNotes} />
+            <WriterInsightsList title="Implementation notes" items={displayedImplementation} />
             <WriterInsightsList
               title="Unaddressed items"
-              items={unaddressedItems}
+              items={displayedUnaddressed}
               variant="danger"
             />
           </div>
@@ -369,6 +379,18 @@ function WriterInsights({ implementationNotes, unaddressedItems }: WriterInsight
             Waiting for the professional writer to complete this run.
           </p>
         )}
+        {hasContent && needsExpansion ? (
+          <div className="mt-3 flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 rounded-full border border-white/10 px-3 text-xs font-semibold text-slate-200 hover:bg-white/10"
+              onClick={() => setExpanded((prev) => !prev)}
+            >
+              {expanded ? "Collapse" : "Expand"}
+            </Button>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
