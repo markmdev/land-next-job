@@ -13,7 +13,7 @@ export function AuthenticatedSection({ user }: AuthenticatedSectionProps) {
 
   useEffect(() => {
     // Redirect to dashboard after successful authentication
-    router.push("/dashboard");
+    router.push("/dashboard_m");
   }, [router]);
 
   return (

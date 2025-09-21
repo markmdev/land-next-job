@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { useUser } from "@stackframe/stack";
 
@@ -12,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "Master Resume", href: "/dashboard/master-resume" },
-  { label: "Job Hunt", href: "/dashboard" },
+  { label: "Job Hunt", href: "/dashboard_m" },
 ];
 
 export function DashboardSidebar() {
@@ -29,10 +30,40 @@ export function DashboardSidebar() {
     .slice(0, 2)
     .toUpperCase();
 
-  // TODO: replace with real credit balance fetched from backend/Redis
-  const credits = 120;
+  const [credits, setCredits] = useState<number | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
 
-  // const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-2" });
+  useEffect(() => {
+    const fetchCredits = async () => {
+      if (!user) {
+        setLoadingCredits(false);
+        return;
+      }
+
+      try {
+        const item = await user.getItem("credits");
+        setCredits(item.quantity);
+      } catch (error) {
+        console.error("Failed to fetch credits:", error);
+        setCredits(0); // Default to 0 on error
+      } finally {
+        setLoadingCredits(false);
+      }
+    };
+
+    fetchCredits();
+  }, [user]);
+
+  const handlePurchaseCredits = async () => {
+    if (!user) return;
+
+    try {
+      const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-2" });
+      window.open(checkoutUrl, "_blank");
+    } catch (error) {
+      console.error("Failed to create checkout URL:", error);
+    }
+  };
 
   return (
     <aside className="hidden w-72 flex-col border-r border-white/10 bg-slate-950/80 px-6 py-8 backdrop-blur lg:flex">
@@ -57,7 +88,7 @@ export function DashboardSidebar() {
             <div className="flex items-center justify-between">
               <span className="uppercase tracking-wide text-slate-400">Credits</span>
               <Badge variant="success" className="bg-emerald-400/90 text-emerald-950">
-                {credits}
+                {loadingCredits ? "..." : (credits ?? 0)}
               </Badge>
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
@@ -97,9 +128,9 @@ export function DashboardSidebar() {
           <Button
             size="sm"
             className="mt-4 w-full rounded-full bg-cyan-400/80 text-slate-950 hover:bg-cyan-300"
-            asChild
+            onClick={handlePurchaseCredits}
           >
-            <Link href="#coming-soon">Purchase credits</Link>
+            Purchase credits
           </Button>
         </div>
       </div>
