@@ -2,16 +2,14 @@ import { Queue, Worker } from "bullmq";
 import { randomUUID } from "node:crypto";
 
 import {
-  runResumeTailoringWorkflow,
-  type ResumeTailoringWorkflowInput,
-} from "@/lib/agents";
-import {
   initializeProgressSnapshot,
   markRunCompleted,
   markRunFailed,
   recordProgressEvent,
 } from "@/lib/progress-store";
 import { getRedisConnectionOptions } from "@/lib/redis";
+import { runWorkflowWithCache } from "@/lib/progress-cache";
+import type { ResumeTailoringWorkflowInput } from "@/lib/agents";
 import type { WorkflowProgressEvent } from "@/lib/workflow-progress";
 
 const QUEUE_NAME = "resume-tailoring";
@@ -44,21 +42,15 @@ async function processJob(job: { data: TailoringJobData }) {
 
   try {
     const sanitizedOptions = sanitizeOptions(input.options);
-    const result = await runResumeTailoringWorkflow({
-      ...input,
-      options: sanitizedOptions
-        ? {
-            ...sanitizedOptions,
-            onProgress: async (event: WorkflowProgressEvent) => {
-              await recordProgressEvent(runId, event);
-            },
-          }
-        : {
-            onProgress: async (event: WorkflowProgressEvent) => {
-              await recordProgressEvent(runId, event);
-            },
-          },
-    });
+    const { result } = await runWorkflowWithCache(
+      {
+        ...input,
+        options: sanitizedOptions,
+      },
+      async (event: WorkflowProgressEvent) => {
+        await recordProgressEvent(runId, event);
+      }
+    );
 
     await markRunCompleted(runId, result);
     return result;

@@ -12,7 +12,7 @@ const PROMPT_FILENAMES = {
   writer: "professional-resume-writer.md",
 } as const;
 
-const DEFAULT_TARGET_SCORE = 85;
+const DEFAULT_TARGET_SCORE = 80;
 const DEFAULT_MAX_ITERATIONS = 3;
 
 const DEFAULT_MODELS = {
