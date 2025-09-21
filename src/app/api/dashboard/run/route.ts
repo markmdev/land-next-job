@@ -3,6 +3,7 @@ import { z, ZodError } from "zod";
 
 import { enqueueResumeTailoringRun } from "@/lib/queue/resume-tailoring-queue";
 import { getProgressSnapshot } from "@/lib/progress-store";
+import { stackServerApp } from "@/stack/server";
 
 const optionsSchema = z
   .object({
@@ -21,6 +22,18 @@ const requestSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = requestSchema.parse(await req.json());
+
+    const user = await stackServerApp.getUser();
+    const item = await user?.getItem('offer-2');
+    const didItWork = await item?.tryDecreaseQuantity(1);
+    if (didItWork === false){
+      return NextResponse.json(
+        {
+          error: "Cannot process: unavailable credits",
+        },
+        { status: 402 }
+      );
+    }
 
     const runId = await enqueueResumeTailoringRun({
       jobPosting: body.jobPosting,

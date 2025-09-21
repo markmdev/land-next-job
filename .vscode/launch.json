@@ -1,0 +1,49 @@
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Next.js: Debug Server",
+                "type": "node",
+                "request": "launch",
+                "runtimeExecutable": "npm",
+                "runtimeArgs": [
+                    "run",
+                    "dev"
+                ],
+                "console": "integratedTerminal",
+                "internalConsoleOptions": "neverOpen",
+                "skipFiles": [
+                    "<node_internals>/**",
+                    "${workspaceFolder}/.chrome-profile/**"
+                ]
+            },
+            {
+                "name": "Next.js: Debug Client",
+                "type": "chrome",
+                "request": "launch",
+                "url": "http://localhost:3000", // Adjust port if necessary
+                "webRoot": "${workspaceFolder}",
+                "sourceMaps": true,
+                "port": 9222,
+                "runtimeArgs": [
+                    "--user-data-dir=${userHome}/.chrome-dev-profile",
+                    "--allow-insecure-localhost",
+                    "--enable-logging",
+                    "--v=1"
+                ],
+                // "preLaunchTask": "Next.js: Debug Server", // Optional: ensures dev server is running
+                // "postDebugTask": "stop server"
+            },
+        ],
+        "compounds": [
+            {
+                "name": "Next.js Server/Client",
+                "configurations": [
+                    "Next.js: Debug Server",
+                    "Next.js: Debug Client"
+                ],
+                // "preLaunchTask": "${defaultBuildTask}",
+                "stopAll": true
+            }
+        ]
+    }
