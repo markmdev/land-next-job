@@ -26,7 +26,7 @@ export function InsufficientCreditsDialog({
     if (!user) return;
 
     try {
-      const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-2" });
+      const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-3" });
       window.open(checkoutUrl, "_blank");
       onOpenChange(false); // Close dialog after opening checkout
     } catch (error) {

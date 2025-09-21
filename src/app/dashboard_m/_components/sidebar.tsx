@@ -61,7 +61,7 @@ export function DashboardSidebar() {
     if (!user) return;
 
     try {
-      const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-2" });
+      const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-3" });
       window.open(checkoutUrl, "_blank");
     } catch (error) {
       console.error("Failed to create checkout URL:", error);
