@@ -4,6 +4,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 
+import type { WorkflowProgressEvent } from "../workflow-progress";
+
 const PROMPT_FILENAMES = {
   evaluation: "resume-job-match-evaluation.md",
   advisor: "resume-tailoring-advisor.md",
@@ -147,6 +149,7 @@ export interface ResumeTailoringWorkflowOptions {
   targetScore?: number;
   maxIterations?: number;
   models?: Partial<Record<keyof AgentModelConfig, AgentModelOptionInput>>;
+  onProgress?: (event: WorkflowProgressEvent) => void | Promise<void>;
 }
 
 export interface TailoringIterationRecord {
@@ -342,15 +345,34 @@ export async function runResumeTailoringWorkflow(
   const targetScore = input.options?.targetScore ?? DEFAULT_TARGET_SCORE;
   const maxIterations = input.options?.maxIterations ?? DEFAULT_MAX_ITERATIONS;
   const models = resolveModels(input.options?.models);
+  const progressCallback = input.options?.onProgress;
 
   const iterations: TailoringIterationRecord[] = [];
 
   let currentResume = startingResume;
+
+  await Promise.resolve(
+    progressCallback?.({
+      stage: "initial_evaluation",
+      status: "in_progress",
+      iteration: 0,
+    })
+  );
+
   let currentEvaluation = await evaluateResume(
     jobPosting,
     currentResume,
     models.evaluation.name,
     models.evaluation.reasoningEffort
+  );
+
+  await Promise.resolve(
+    progressCallback?.({
+      stage: "initial_evaluation",
+      status: "completed",
+      iteration: 0,
+      evaluation: currentEvaluation,
+    })
   );
 
   iterations.push({
@@ -361,6 +383,15 @@ export async function runResumeTailoringWorkflow(
   });
 
   if (currentEvaluation.score >= targetScore || maxIterations === 0) {
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "final_evaluation",
+        status: "completed",
+        iteration: 0,
+        evaluation: currentEvaluation,
+      })
+    );
+
     return {
       finalResume: currentResume,
       finalEvaluation: currentEvaluation,
@@ -371,12 +402,38 @@ export async function runResumeTailoringWorkflow(
   }
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "advisor",
+        status: "in_progress",
+        iteration,
+      })
+    );
+
     const recommendations = await getTailoringAdvice(
       jobPosting,
       currentResume,
       models.advisor.name,
       models.advisor.reasoningEffort
     );
+
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "advisor",
+        status: "completed",
+        iteration,
+        recommendations,
+      })
+    );
+
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "writer",
+        status: "in_progress",
+        iteration,
+      })
+    );
+
     const writerOutput = await rewriteResume(
       jobPosting,
       currentResume,
@@ -384,12 +441,39 @@ export async function runResumeTailoringWorkflow(
       models.writer.name,
       models.writer.reasoningEffort
     );
+
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "writer",
+        status: "completed",
+        iteration,
+        writerOutput,
+      })
+    );
+
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "final_evaluation",
+        status: "in_progress",
+        iteration,
+      })
+    );
+
     const rewrittenResume = normalizeResume(writerOutput.rewritten_resume.trim());
     const reevaluated = await evaluateResume(
       jobPosting,
       rewrittenResume,
       models.evaluation.name,
       models.evaluation.reasoningEffort
+    );
+
+    await Promise.resolve(
+      progressCallback?.({
+        stage: "final_evaluation",
+        status: "completed",
+        iteration,
+        evaluation: reevaluated,
+      })
     );
 
     iterations.push({
