@@ -15,6 +15,10 @@ export interface WorkflowStep {
 interface ProgressDrawerProps {
   steps: WorkflowStep[];
   overallProgress: number;
+  onStart?: () => void;
+  isRunning?: boolean;
+  disabled?: boolean;
+  statusLabel?: string;
 }
 
 const STATUS_COLORS: Record<WorkflowStepStatus, string> = {
@@ -29,22 +33,33 @@ const STATUS_LABELS: Record<WorkflowStepStatus, string> = {
   pending: "Queued",
 };
 
-export function ProgressDrawer({ steps, overallProgress }: ProgressDrawerProps) {
+export function ProgressDrawer({
+  steps,
+  overallProgress,
+  onStart,
+  isRunning,
+  disabled,
+  statusLabel,
+}: ProgressDrawerProps) {
   return (
     <div className="border-t border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur">
       <div className="mx-auto w-full max-w-6xl space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex w-full flex-col gap-2">
             <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-500">
-              <span>Workflow status</span>
+              <span>{statusLabel ?? "Workflow status"}</span>
               <span className="text-sm font-semibold text-white normal-case tracking-normal">
                 {overallProgress}% complete
               </span>
             </div>
             <Progress value={overallProgress} />
           </div>
-          <Button className="h-10 rounded-full bg-cyan-400/90 px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
-            Start tailoring run
+          <Button
+            className="h-10 rounded-full bg-cyan-400/90 px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed"
+            onClick={onStart}
+            disabled={disabled || isRunning}
+          >
+            {isRunning ? "Running..." : "Start tailoring run"}
           </Button>
         </div>
         <div className="grid gap-2 text-xs text-slate-300 sm:grid-cols-2 lg:grid-cols-4">
