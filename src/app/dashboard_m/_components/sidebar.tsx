@@ -32,6 +32,8 @@ export function DashboardSidebar() {
   // TODO: replace with real credit balance fetched from backend/Redis
   const credits = 120;
 
+  // const checkoutUrl = await user.createCheckoutUrl({ offerId: "offer-2" });
+
   return (
     <aside className="hidden w-72 flex-col border-r border-white/10 bg-slate-950/80 px-6 py-8 backdrop-blur lg:flex">
       <div className="mb-10 space-y-4">
