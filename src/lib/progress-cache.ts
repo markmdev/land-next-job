@@ -27,12 +27,11 @@ export async function runWorkflowWithCache(
   const cached = await redis.get(key);
   if (cached) {
     const parsed = JSON.parse(cached) as ResumeTailoringWorkflowResult;
-    // simulate delay for demo purposes
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    // Emit synthetic progress so UI updates instantly
+    const events: WorkflowProgressEvent[] = [];
+
     if (parsed.iterations.length > 0) {
       const initial = parsed.iterations[0];
-      await onProgress({
+      events.push({
         stage: "initial_evaluation",
         status: "completed",
         iteration: 0,
@@ -41,19 +40,19 @@ export async function runWorkflowWithCache(
 
       for (let i = 1; i < parsed.iterations.length; i += 1) {
         const iterRecord = parsed.iterations[i];
-        await onProgress({
+        events.push({
           stage: "advisor",
           status: "completed",
           iteration: i,
           recommendations: iterRecord.recommendations,
         });
-        await onProgress({
+        events.push({
           stage: "writer",
           status: "completed",
           iteration: i,
           writerOutput: iterRecord.writerOutput,
         });
-        await onProgress({
+        events.push({
           stage: "final_evaluation",
           status: "completed",
           iteration: i,
@@ -61,6 +60,12 @@ export async function runWorkflowWithCache(
         });
       }
     }
+
+    for (const event of events) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await onProgress(event);
+    }
+
     return { result: parsed, fromCache: true };
   }
 

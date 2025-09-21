@@ -44,6 +44,31 @@ function mapSteps(snapshot?: WorkflowProgressSnapshot): WorkflowStep[] {
   });
 }
 
+function getScoreMeta(score: number | null | undefined) {
+  if (typeof score !== "number" || Number.isNaN(score)) {
+    return null;
+  }
+
+  if (score >= 80) {
+    return {
+      label: "Great fit",
+      badgeClass: "bg-emerald-500/15 text-emerald-200 border border-emerald-400/40",
+    } as const;
+  }
+
+  if (score >= 60) {
+    return {
+      label: "Moderate fit",
+      badgeClass: "bg-amber-400/15 text-amber-200 border border-amber-300/40",
+    } as const;
+  }
+
+  return {
+    label: "No chances",
+    badgeClass: "bg-rose-500/15 text-rose-200 border border-rose-400/40",
+  } as const;
+}
+
 interface DashboardClientProps {
   initialResume: string;
   initialJobPosting: string;
@@ -69,7 +94,7 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
     ? `Run status: ${RUN_STATUS_LABEL[progressSnapshot.status]}`
     : "Run status: Idle";
 
-  const latestScore = progressSnapshot?.latestEvaluation?.score ?? "—";
+  const latestScore = progressSnapshot?.latestEvaluation?.score ?? null;
   const latestWriterOutput = progressSnapshot?.latestWriterOutput ?? null;
 
   const handleLoadMaster = useCallback(() => {
@@ -224,11 +249,20 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
               </p>
               {errorMessage ? <p className="text-xs text-rose-300">{errorMessage}</p> : null}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-cyan-400/80 text-slate-950">Target score ≥ 85</Badge>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+              <Badge className="bg-cyan-400/80 text-slate-950">Target score ≥ 80</Badge>
               <Badge variant="outline" className="border-white/20 text-slate-300">
-                Latest score: {latestScore}
+                Latest score: {latestScore ?? "—"}
               </Badge>
+              {typeof latestScore === "number" ? (
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${
+                    getScoreMeta(latestScore)?.badgeClass ?? "border border-white/20"
+                  }`}
+                >
+                  {getScoreMeta(latestScore)?.label}
+                </span>
+              ) : null}
               {progressSnapshot ? (
                 <Badge variant="outline" className="border-white/20 text-slate-300">
                   {RUN_STATUS_LABEL[progressSnapshot.status]}
@@ -328,11 +362,22 @@ export function DashboardClient({ initialResume, initialJobPosting }: DashboardC
                   readOnly={showAdjustedResume && !!latestWriterOutput}
                 />
                 <div className="flex items-center justify-between text-[11px] text-slate-500">
-                  <span>
-                    {progressSnapshot?.latestEvaluation
-                      ? `Current score: ${progressSnapshot.latestEvaluation.score}`
-                      : "Detected keywords: React, TypeScript, Microservices"}
-                  </span>
+                  {progressSnapshot?.latestEvaluation ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-300">
+                        Current score: {progressSnapshot.latestEvaluation.score}
+                      </span>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${
+                          getScoreMeta(progressSnapshot.latestEvaluation.score)?.badgeClass ?? ""
+                        }`}
+                      >
+                        {getScoreMeta(progressSnapshot.latestEvaluation.score)?.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <span>Detected keywords: React, TypeScript, Microservices</span>
+                  )}
                   <span className="text-cyan-300">&nbsp;</span>
                 </div>
               </CardContent>
@@ -356,15 +401,10 @@ interface WriterInsightsProps {
 function WriterInsights({ implementationNotes, unaddressedItems }: WriterInsightsProps) {
   const [expanded, setExpanded] = useState(false);
   const hasContent = implementationNotes.length > 0 || unaddressedItems.length > 0;
-  const needsExpansion =
-    implementationNotes.length > 2 || unaddressedItems.length > 2;
+  const needsExpansion = implementationNotes.length > 2 || unaddressedItems.length > 2;
 
-  const displayedImplementation = expanded
-    ? implementationNotes
-    : implementationNotes.slice(0, 2);
-  const displayedUnaddressed = expanded
-    ? unaddressedItems
-    : unaddressedItems.slice(0, 2);
+  const displayedImplementation = expanded ? implementationNotes : implementationNotes.slice(0, 2);
+  const displayedUnaddressed = expanded ? unaddressedItems : unaddressedItems.slice(0, 2);
 
   return (
     <Card className="shrink-0 border-white/10 bg-white/5">

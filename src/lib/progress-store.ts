@@ -15,6 +15,22 @@ function cloneDefaultSteps(): WorkflowStepSnapshot[] {
   return WORKFLOW_STEP_ORDER.map((step) => ({ ...step }));
 }
 
+function scoreLabel(score: number | undefined) {
+  if (typeof score !== "number" || Number.isNaN(score)) {
+    return null;
+  }
+
+  if (score >= 80) {
+    return "Great fit";
+  }
+
+  if (score >= 60) {
+    return "Moderate fit";
+  }
+
+  return "No chances";
+}
+
 function computeOverallProgress(steps: WorkflowStepSnapshot[]): number {
   const total = steps.length;
   if (total === 0) {
@@ -88,7 +104,10 @@ export async function recordProgressEvent(runId: string, event: WorkflowProgress
       step.status = event.status === "completed" ? "completed" : "active";
       if (event.stage === "initial_evaluation" || event.stage === "final_evaluation") {
         if (event.evaluation) {
-          step.description = `Score ${event.evaluation.score}`;
+          const label = scoreLabel(event.evaluation.score);
+          step.description = label
+            ? `Score ${event.evaluation.score} · ${label}`
+            : `Score ${event.evaluation.score}`;
           snapshot.latestEvaluation = event.evaluation;
         }
       }
