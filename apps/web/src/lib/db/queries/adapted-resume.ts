@@ -38,3 +38,13 @@ export const updateAdaptedResume = async (
 
   return result[0];
 };
+
+export const createAdaptedResume = async (
+  newAdaptedResume: AdaptedResumeUpdateDTO
+): Promise<AdaptedResumeDTO> => {
+  const result = await db.insert(adaptedResume).values(newAdaptedResume).returning();
+  if (!result[0]) {
+    throw new Error("Adapted resume not created");
+  }
+  return result[0];
+};
