@@ -8,8 +8,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { JobPostingsList } from "@/components/job-postings-list";
-import { Briefcase, Home } from "lucide-react";
+import { Home } from "lucide-react";
+import { JobPostingsSection } from "./job-postings-section";
 // Menu items.
 const items = [
   {
@@ -51,13 +51,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup className="mt-6 flex-1 min-h-0">
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-            <Briefcase className="h-4 w-4" />
-            Job Postings
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="flex-1 overflow-y-auto">
-            <JobPostingsList />
-          </SidebarGroupContent>
+          <JobPostingsSection />
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>

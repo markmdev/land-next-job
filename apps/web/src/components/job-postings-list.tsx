@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobPostingDTO } from "@/types/job-postings";
@@ -21,31 +20,13 @@ function JobPostingsSkeleton() {
   );
 }
 
-export function JobPostingsList() {
-  const [jobPostings, setJobPostings] = useState<JobPostingDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type JobPostingsListProps = {
+  jobPostings: JobPostingDTO[];
+  isLoading: boolean;
+  error: string | null;
+};
 
-  useEffect(() => {
-    const fetchJobPostings = async () => {
-      try {
-        const response = await fetch("/api/postings");
-        const data = await response.json();
-        if (response.ok) {
-          setJobPostings(data);
-        } else {
-          setError(data.error);
-        }
-      } catch (error) {
-        console.error("Failed to fetch job postings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchJobPostings();
-  }, []);
-
+export function JobPostingsList({ jobPostings, isLoading, error }: JobPostingsListProps) {
   if (error) {
     return <div className="px-3 py-2 text-xs text-red-500 dark:text-red-400 italic">{error}</div>;
   }
@@ -56,8 +37,8 @@ export function JobPostingsList() {
         <JobPostingsSkeleton />
       ) : (
         <>
-          {jobPostings.map((item: JobPostingDTO, index: number) => (
-            <SidebarMenuItem key={`posting-${item.id}-${index}-${item.title}`}>
+          {jobPostings.map((item: JobPostingDTO) => (
+            <SidebarMenuItem key={item.id}>
               <SidebarMenuButton
                 asChild
                 className="hover:bg-green-50 dark:hover:bg-green-900/50 transition-all duration-200 hover:translate-x-1"
@@ -73,7 +54,7 @@ export function JobPostingsList() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          {jobPostings.length === 0 && (
+          {jobPostings.length === 0 && !isLoading && (
             <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 italic">
               No job postings yet
             </div>
