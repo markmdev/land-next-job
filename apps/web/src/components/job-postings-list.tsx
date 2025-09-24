@@ -43,14 +43,14 @@ export function JobPostingsList({ jobPostings, isLoading, error }: JobPostingsLi
                 asChild
                 className="hover:bg-green-50 dark:hover:bg-green-900/50 transition-all duration-200 hover:translate-x-1"
               >
-                <a href={"/postings/" + item.id} className="flex items-center gap-3 py-2 group">
+                <Link href={"/postings/" + item.id} className="flex items-center gap-3 py-2 group">
                   <div className="p-1.5 bg-green-100 dark:bg-green-900 rounded-md group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors">
                     <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
                   <span className="font-medium text-sm truncate" title={item.title}>
                     {item.title}
                   </span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

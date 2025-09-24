@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   Sidebar,
   SidebarContent,
@@ -36,12 +38,12 @@ export function AppSidebar() {
                       asChild
                       className="hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors duration-200"
                     >
-                      <a href={item.url} className="flex items-center gap-3 py-2">
+                      <Link href={item.url} className="flex items-center gap-3 py-2">
                         <div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded-md">
                           <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         <span className="font-medium">{item.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
