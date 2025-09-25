@@ -10,8 +10,12 @@ export default async function ResumePage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full animate-in fade-in-50 duration-500">
-      <JobPostingDetails jobPostingProp={jobPosting} />
-      <AdaptedResume adaptedResumeProp={adaptedResume} />
+      <div className="flex flex-col gap-4 md:gap-6">
+        <div className=" flex flex-row gap-4 md:gap-6">
+          <JobPostingDetails jobPostingProp={jobPosting} />
+          <AdaptedResume adaptedResumeProp={adaptedResume} />
+        </div>
+      </div>
     </div>
   );
 }

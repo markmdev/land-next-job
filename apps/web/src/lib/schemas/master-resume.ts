@@ -2,5 +2,5 @@ import { z } from "zod";
 
 export const masterResumeSchema = z.object({
   id: z.uuid(),
-  markdownContent: z.string().max(2000),
+  markdownContent: z.string().max(6000),
 });
