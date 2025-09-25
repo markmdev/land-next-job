@@ -4,6 +4,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobPostingDTO } from "@/types/job-postings";
 import { FileText } from "lucide-react";
+import Link from "next/link";
 
 function JobPostingsSkeleton() {
   return (

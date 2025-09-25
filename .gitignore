@@ -40,3 +40,4 @@ yarn-error.log*
 .claude
 CLAUDE.md
 .mcp.json
+.cursor
