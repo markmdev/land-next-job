@@ -1,0 +1,27 @@
+{
+  "name": "@repo/agents",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts --format cjs,esm --dts"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "tsup": "^7.0.0",
+    "typescript": "^5.0.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openai/agents": "^0.1.4",
+    "zod": "^3.25.76"
+  }
+}

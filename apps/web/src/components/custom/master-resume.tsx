@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { FileText, Edit, Eye } from "lucide-react";
 import { updateMasterResumeAction } from "@/lib/actions/master-resume";
-import SaveChanges from "./save-changes";
+import SaveChanges from "@/components/custom/save-changes";
 
 export default function MasterResume({
   masterResume: resumeProp,

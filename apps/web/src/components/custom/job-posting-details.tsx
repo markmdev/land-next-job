@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { updateJobPostingAction } from "@/lib/actions/job-posting";
-import SaveChanges from "./save-changes";
+import SaveChanges from "@/components/custom/save-changes";
 import { Input } from "@/components/ui/input";
 
 export default function JobPostingDetails({ jobPostingProp }: { jobPostingProp: JobPostingDTO }) {
