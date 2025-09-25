@@ -1,4 +1,5 @@
 import AdaptedResume from "@/components/custom/adapted-resume";
+import AnalyzeResume from "@/components/custom/analyze-resume";
 import JobPostingDetails from "@/components/custom/job-posting-details";
 import { getAdaptedResumeByJobPostingId } from "@/lib/db/queries/adapted-resume";
 import { getJobPostingById } from "@/lib/db/queries/job-postings";
@@ -15,6 +16,10 @@ export default async function ResumePage({ params }: { params: Promise<{ id: str
           <JobPostingDetails jobPostingProp={jobPosting} />
           <AdaptedResume adaptedResumeProp={adaptedResume} />
         </div>
+        <AnalyzeResume
+          masterResume={adaptedResume.markdownContent}
+          jobPosting={jobPosting.postingText}
+        />
       </div>
     </div>
   );

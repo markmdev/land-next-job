@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Home } from "lucide-react";
-import { JobPostingsSection } from "./job-postings-section";
+import { JobPostingsSection } from "@/components/custom/job-postings-section";
 // Menu items.
 const items = [
   {

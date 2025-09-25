@@ -40,7 +40,7 @@ export default async function RootLayout({
                   <span className="text-white text-xs font-bold">RF</span>
                 </div>
                 <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Resume-Fit
+                  Resume-Fit.
                 </h1>
               </div>
             </header>

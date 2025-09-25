@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { FileText, Edit, Eye } from "lucide-react";
 import { updateAdaptedResumeAction } from "@/lib/actions/adapted-resume";
-import SaveChanges from "./save-changes";
+import SaveChanges from "@/components/custom/save-changes";
 
 export default function AdaptedResume({
   adaptedResumeProp,
